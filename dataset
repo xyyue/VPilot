@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from deepgtav.messages import Start, Stop, Dataset, frame2numpy
+from deepgtav.messages import Start, Stop, Dataset, frame2numpy, Scenario, Commands
 from deepgtav.client import Client
 
 import argparse
@@ -22,24 +22,27 @@ if __name__ == '__main__':
     
     # Configures the information that we want DeepGTAV to generate and send to us. 
     # See deepgtav/messages.py to see what options are supported
-    dataset = Dataset(rate=30, frame=[320,160], throttle=True, brake=True, steering=True, vehicles=True, peds=True, reward=[15.0, 0.0], direction=None, speed=True, yawRate=True, location=True, time=True)
+    dataset = Dataset(rate=10, frame=[320,200], throttle=True, brake=True, steering=True, vehicles=True, peds=True, reward=[15.0, 0.0], direction=None, speed=True, yawRate=True, location=True, time=True)
     # Send the Start request to DeepGTAV.
     scenario = Scenario(drivingMode=[786603,15.0]) # Driving style is set to normal, with a speed of 15.0 mph. All other scenario options are random.
     client.sendMessage(Start(dataset=dataset,scenario=scenario))
 
     # Start listening for messages coming from DeepGTAV. We do it for 80 hours
     stoptime = time.time() + 80*3600
+    i = 0
     while time.time() < stoptime:
         try:
             # We receive a message as a Python dictionary
             message = client.recvMessage()  
             
             # The frame is a numpy array and can be displayed using OpenCV or similar       
-            # image = frame2numpy(message['frame'], (320,160))
-            # cv2.imshow('img',image)
+            image = frame2numpy(message['frame'], (320,160))
+            #cv2.imshow('img',image)
+            cv2.imwrite(str(i) + '.png', image)
             # cv2.waitKey(-1)
         except KeyboardInterrupt:
             break
+        i = i + 1
             
     # We tell DeepGTAV to stop
     client.sendMessage(Stop())
