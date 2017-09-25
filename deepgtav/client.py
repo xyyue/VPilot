@@ -14,12 +14,21 @@ class Targets:
         if datasetPath != None:
             self.pickleFile = gzip.open(datasetPath, mode='ab', compresslevel=compressionLevel)
 
-    def parse(self, frame, jsonstr):
+    def parse(self, frame, jsonstr, i):
         dct = json.loads(jsonstr)
+        
+        fname = '19_1_' + str(i) + '.pz'################################
+
+        with gzip.open(fname, mode='ab', compresslevel=9) as gz_file:
+            pickle.dump(dct, gz_file)
         dct['frame'] = frame
-        if self.pickleFile != None:
-            pickle.dump(dct, self.pickleFile)
         return dct
+        # dct = json.loads(jsonstr)
+        
+        # if self.pickleFile != None:
+        #     pickle.dump(dct, self.pickleFile)
+        # dct['frame'] = frame
+        # return dct
 
 class Client:
     def __init__(self, ip='localhost', port=8000, datasetPath=None, compressionLevel=0):
@@ -45,16 +54,16 @@ class Client:
             return False
         return True
 
-    def recvMessage(self):
+    def recvMessage(self, i):
         frame = self._recvall()
         if not frame: 
             print('ERROR: Failed to receive frame')     
             return None
         data = self._recvall()
         if not data: 
-            print('ERROR: Failed to receive message')       
+            print('ERROR: Failed to receive message')
             return None
-        return self.targets.parse(frame, data.decode('utf-8'))
+        return self.targets.parse(frame, data.decode('utf-8'), i)
 
     def _recvall(self):
         #Receive first size of message in bytes
